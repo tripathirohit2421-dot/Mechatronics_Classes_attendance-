@@ -1,0 +1,435 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MSME - Academic Attendance Portal</title>
+    <style>
+        :root {
+            --msme-blue: #0056b3;
+            --msme-dark-blue: #003366;
+            --msme-light-bg: #f8f9fa;
+            --msme-accent: #ff9933; 
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background-color: #e9ecef;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+
+        /* Govt Style Header */
+        .top-header {
+            background: var(--msme-dark-blue);
+            color: white;
+            padding: 12px 25px;
+            display: flex;
+            align-items: center;
+            border-bottom: 4px solid var(--msme-accent);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .top-header h1 {
+            font-size: 1.1rem;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+        }
+
+        .table-container {
+            max-width: 1100px;
+            margin: 30px auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+            border: 1px solid #ced4da;
+        }
+
+        .table-header {
+            background: #fff;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 2px solid var(--msme-light-bg);
+        }
+
+        .table-header h2 {
+            margin: 0;
+            color: var(--msme-dark-blue);
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background-color: var(--msme-blue);
+            color: white;
+            text-align: left;
+            padding: 15px;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            border-right: 1px solid rgba(255,255,255,0.1);
+        }
+
+        td {
+            padding: 14px 15px;
+            border-bottom: 1px solid #dee2e6;
+            font-size: 0.95rem;
+        }
+
+        .faculty-text {
+            display: block;
+            font-size: 0.82rem;
+            color: #d9534f; /* Alerting red/maroon for professional touch */
+            margin-top: 4px;
+            font-weight: 600;
+        }
+
+        .day-column {
+            font-weight: bold;
+            color: var(--msme-dark-blue);
+            background: #f1f8ff;
+            text-align: center;
+            border-right: 1px solid #dee2e6;
+            width: 100px;
+        }
+
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        /* MSME Professional Button */
+        .batch-tag {
+            display: inline-block;
+            padding: 8px 14px;
+            border-radius: 3px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            background: #28a745;
+            color: white;
+            cursor: pointer;
+            border: none;
+            text-transform: uppercase;
+            transition: all 0.2s;
+        }
+
+        .batch-tag:hover {
+            background: #218838;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+        }
+
+        /* Modal Settings */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0; top: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            backdrop-filter: blur(2px);
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 3% auto;
+            border-radius: 8px;
+            width: 450px;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+        }
+
+        .modal-header {
+            background: var(--msme-dark-blue);
+            color: white;
+            padding: 15px;
+            font-size: 1.1em;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        #studentList {
+            padding: 15px;
+            overflow-y: auto;
+        }
+
+        .student-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #f1f1f1;
+        }
+
+        .attn-btns button {
+            padding: 5px 12px;
+            border: 1px solid #ccc;
+            background: #fff;
+            cursor: pointer;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        button.present.active { background: #28a745; color: white; border-color: #28a745; }
+        button.absent.active { background: #dc3545; color: white; border-color: #dc3545; }
+
+        .save-close-btn {
+            width: 100%;
+            padding: 15px;
+            background: var(--msme-blue);
+            color: white;
+            border: none;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .save-close-btn:hover { background: var(--msme-dark-blue); }
+    </style>
+</head>
+<body>
+
+<div class="top-header">
+    <h1>Government of India | Training Management System</h1>
+</div>
+
+<div class="table-container">
+    <div class="table-header">
+        <h2>Weekly Academic Schedule</h2>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Day</th>
+                <th>Time Slot</th>
+                <th>Course / Subject</th>
+                <th>Mark Attendance</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="day-column" rowspan="3">Monday</td>
+                <td>09:00 AM – 11:00 AM</td>
+                <td>
+                    <strong>Applied Physics-II Lab (P)</strong>
+                    <span class="faculty-text">Faculty: ROHIT TRIPATHI</span>
+                </td>
+                <td><span class="batch-tag" onclick="openPopup('DILT 2025', 'Physics II Lab')">MARK DILT 2025</span></td>
+            </tr>
+            <tr>
+                <td>12:00 PM – 01:00 PM</td>
+                <td>
+                    <strong>Anandam</strong>
+                    <span class="faculty-text">Faculty: ROHIT TRIPATHI</span>
+                </td>
+                <td><span class="batch-tag" onclick="openPopup('DILT 2023', 'Anandam')">MARK DILT 2023</span></td>
+            </tr>
+            <tr>
+                <td>03:30 PM – 05:30 PM</td>
+                <td>
+                    <strong>Micro Programming</strong>
+                    <span class="faculty-text">Faculty: ROHIT TRIPATHI</span>
+                </td>
+                <td><span class="batch-tag" onclick="openPopup('DIM 2024', 'Micro Programming')">MARK DIM 2024</span></td>
+            </tr>
+
+            <tr>
+                <td class="day-column" rowspan="2">Tuesday</td>
+                <td>09:00 AM – 01:00 PM</td>
+                <td>
+                    <strong>Micro Programming</strong>
+                    <span class="faculty-text">Faculty: ROHIT TRIPATHI</span>
+                </td>
+                <td><span class="batch-tag" onclick="openPopup('DIM 2024', 'Micro Programming')">MARK DIM 2024</span></td>
+            </tr>
+            <tr>
+                <td>03:30 PM – 04:30 PM</td>
+                <td>
+                    <strong>Sports & Yoga (P)</strong>
+                    <span class="faculty-text">Faculty: ROHIT TRIPATHI</span>
+                </td>
+                <td><span class="batch-tag" onclick="openPopup('DILT 2025', 'Sports & Yoga')">MARK DILT 2025</span></td>
+            </tr>
+
+            <tr>
+                <td class="day-column" rowspan="2">Wednesday</td>
+                <td>09:00 AM – 01:00 PM</td>
+                <td>
+                    <strong>Power Electronics (PR)</strong>
+                    <span class="faculty-text">Faculty: ROHIT TRIPATHI</span>
+                </td>
+                <td><span class="batch-tag" onclick="openPopup('DIM 2024', 'Power Electronics')">MARK DIM 2024</span></td>
+            </tr>
+            <tr>
+                <td>01:30 PM – 05:30 PM</td>
+                <td>
+                    <strong>Mechatronics System Design (PR)</strong>
+                    <span class="faculty-text">Faculty: ROHIT TRIPATHI</span>
+                </td>
+                <td><span class="batch-tag" onclick="openPopup('DIM 2023', 'Mechatronics')">MARK DIM 2023</span></td>
+            </tr>
+
+            <tr>
+                <td class="day-column">Thursday</td>
+                <td>09:00 AM – 01:00 PM</td>
+                <td>
+                    <strong>Applied Chemistry (Lec/Prac)</strong>
+                    <span class="faculty-text">Faculty: ROHIT TRIPATHI</span>
+                </td>
+                <td><span class="batch-tag" onclick="openPopup('DILT 2025', 'Applied Chemistry')">MARK DILT 2025</span></td>
+            </tr>
+
+            <tr>
+                <td class="day-column" rowspan="2">Friday</td>
+                <td>09:00 AM – 01:00 PM</td>
+                <td>
+                    <strong>Mini Project</strong>
+                    <span class="faculty-text">Faculty: ROHIT TRIPATHI</span>
+                </td>
+                <td><span class="batch-tag" onclick="openPopup('DIM 2024', 'Mini Project')">MARK DIM 2024</span></td>
+            </tr>
+            <tr>
+                <td>01:30 PM – 05:30 PM</td>
+                <td>
+                    <strong>Final Projects</strong>
+                    <span class="faculty-text">Faculty: ROHIT TRIPATHI</span>
+                </td>
+                <td><span class="batch-tag" onclick="openPopup('DIM 2023', 'Final Projects')">MARK DIM 2023</span></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div id="attendanceModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header" id="modalTitle">Batch Attendance</div>
+        <div id="studentList"></div>
+        <button class="save-close-btn" id="saveBtn" onclick="saveAttendance()">Save to Google Sheets</button>
+    </div>
+</div>
+
+<script>
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxP0VFQNXEL2op-SHQV8ho_O0U267U2MAOCNP-NzdGVX0Gzn6a87AdpnJ8JxKJTU-SW/exec';
+
+    // Same Student Data (Unchanged)
+    const studentsData = {
+        'DIM 2024': [
+            {id: 'DIM07202401', name: 'Ankit'}, {id: 'DIM07202402', name: 'Tanuj Yadav'},
+            {id: 'DIM07202403', name: 'Shubham Kumar Sharma'}, {id: 'DIM07202404', name: 'Rohit Kumar'},
+            {id: 'DIM07202405', name: 'Yash'}, {id: 'DIM07202406', name: 'Nitin'},
+            {id: 'DIM07202407', name: 'Himanshu'}, {id: 'DIM07202408', name: 'Manish Kumar'},
+            {id: 'DIM07202409', name: 'Ayush Kumar'}, {id: 'DIM07202410', name: 'Himesh'},
+            {id: 'DIM07202411', name: 'Himanshu'}, {id: 'DIM07202412', name: 'Karan'},
+            {id: 'DIM07202413', name: 'Bhupendar'}, {id: 'DIM07202414', name: 'Rajan Chauhan'},
+            {id: 'DIM07202415', name: 'Praveen'}, {id: 'DIM07202416', name: 'Saitan Kumar Bairwa'},
+            {id: 'DIM07202417', name: 'Saikul'}, {id: 'DIM07202419', name: 'Dheeraj'},
+            {id: 'DIM07202420', name: 'Jogender Puniya'}, {id: 'DIM07202421', name: 'Mohit Kumar'},
+            {id: 'DIM07202422', name: 'Ankit Singh'}, {id: 'DIM07202423', name: 'Raghunayak Kumar'},
+            {id: 'DIM07202424', name: 'Vivek Kumar Raut'}, {id: 'DIM07202425', name: 'Ansika Bisariya'},
+            {id: 'DIM07202426', name: 'Ankit'}, {id: 'DIM07202427', name: 'Dinesh'},
+            {id: 'DIM07202430', name: 'Tohid'}, {id: 'DIM07202431', name: 'Ikaram'},
+            {id: 'DIM07202432', name: 'Kamal'}, {id: 'DIM07202434', name: 'Ansar'},
+            {id: 'DIM07202437', name: 'Mukul'}, {id: 'DIM07202438', name: 'Shyam Sunder Singh'},
+            {id: 'DIM07202439', name: 'Vivek Raj'}, {id: 'DIM07202440', name: 'Prashant Kumar'},
+            {id: 'DIM07202442', name: 'Mohammad Farhan Khan'}, {id: 'DIM07202444', name: 'Dilshad'},
+            {id: 'DIM07202445', name: 'Parvej Khan'}, {id: 'DIM07202446', name: 'Ashish Mishra'},
+            {id: 'DIM07202450', name: 'Dheeraj'}, {id: 'DIM07202451', name: 'Uday Pratap'},
+            {id: 'DIM07202455', name: 'Mahesh Singh'}, {id: 'DIM07202456', name: 'Tanish Kumar'},
+            {id: 'DIM07202460', name: 'Soyab Khan'}
+        ],
+        'DIM 2023': [
+            {id: 'DIM08202301', name: 'Madhav Pareek'}, {id: 'DIM08202303', name: 'Yash Yadav'},
+            {id: 'DIM08202304', name: 'Uttam Yadav'}, {id: 'DIM08202305', name: 'Anchal'},
+            {id: 'DIM08202306', name: 'Dipanshu'}, {id: 'DIM08202308', name: 'Khetee Khanna'},
+            {id: 'DIM08202310', name: 'Vikas Saini'}, {id: 'DIM08202311', name: 'Vikas Kumar'},
+            {id: 'DIM08202312', name: 'Aman'}, {id: 'DIM08202313', name: 'Nitin Kumar'},
+            {id: 'DIM08202315', name: 'Lakshay'}, {id: 'DIM08202316', name: 'Nitin Kumar'},
+            {id: 'DIM08202318', name: 'Shweta'}, {id: 'DIM08202320', name: 'Lokesh Kumar'},
+            {id: 'DIM08202321', name: 'Parvej Alam'}, {id: 'DIM08202322', name: 'Rahul Bagari'},
+            {id: 'DIM08202323', name: 'Payal Dubey'}, {id: 'DIM08202324', name: 'Umesh Yadav'},
+            {id: 'DIM08202325', name: 'Sohil Khan'}, {id: 'DIM08202330', name: 'Devesh Nautiyal'},
+            {id: 'DIM08202331', name: 'Ms. Riya Yadav'}, {id: 'DIM08202333', name: 'Saurabh Yadav'},
+            {id: 'DIM08202335', name: 'Vinay Kumar'}, {id: 'DIM08202336', name: 'Ghanshyam Kumar'},
+            {id: 'DIM08202337', name: 'Lakhpat'}, {id: 'DIM08202338', name: 'Vinit'},
+            {id: 'DIM08202344', name: 'Vansh Raj Singh'}, {id: 'DIM08202346', name: 'Naved Khan'},
+            {id: 'DIM08202349', name: 'Abhishek'}, {id: 'DIM08202350', name: 'Kapil Kumar'}
+        ],
+        'DILT 2025': [{id: 'N/A', name: 'Rahul Sharma'}, {id: 'N/A', name: 'Amit Verma'}, {id: 'N/A', name: 'Sanjay Meena'}, {id: 'N/A', name: 'Priya Kumari'}],
+        'DILT 2023': [{id: 'N/A', name: 'Vikas Yadav'}, {id: 'N/A', name: 'Deepak Saini'}, {id: 'N/A', name: 'Anjali Gupta'}]
+    };
+
+    const modal = document.getElementById('attendanceModal');
+    const studentListDiv = document.getElementById('studentList');
+    const saveBtn = document.getElementById('saveBtn');
+
+    function openPopup(batchName, subject) {
+        document.getElementById('modalTitle').innerText = batchName + " - " + subject;
+        studentListDiv.innerHTML = ''; 
+        if (studentsData[batchName]) {
+            studentsData[batchName].forEach((student) => {
+                const row = document.createElement('div');
+                row.className = 'student-row';
+                row.innerHTML = `
+                    <div class="student-info">
+                        <strong>${student.name}</strong>
+                        <span style="font-size:0.75em; color: #777;">${student.id}</span>
+                    </div>
+                    <div class="attn-btns">
+                        <button class="present" onclick="mark(this, 'p')">P</button>
+                        <button class="absent" onclick="mark(this, 'a')">A</button>
+                    </div>`;
+                studentListDiv.appendChild(row);
+            });
+        }
+        modal.style.display = 'block';
+    }
+
+    function mark(btn, status) {
+        const parent = btn.parentElement;
+        parent.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
+
+    async function saveAttendance() {
+        const titleText = document.getElementById('modalTitle').innerText;
+        const [batch, subject] = titleText.split(" - ");
+        const rows = document.querySelectorAll('.student-row');
+        let attendanceArray = [];
+        rows.forEach(row => {
+            const name = row.querySelector('strong').innerText;
+            const activeBtn = row.querySelector('.attn-btns button.active');
+            const status = activeBtn ? activeBtn.innerText : 'N/A';
+            attendanceArray.push({ name: name, status: status });
+        });
+
+        saveBtn.disabled = true;
+        saveBtn.innerText = "Processing Request...";
+
+        try {
+            await fetch(scriptURL, {
+                method: 'POST',
+                mode: 'no-cors',
+                cache: 'no-cache',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ batch, subject, attendance: attendanceArray })
+            });
+            alert("Record Updated Successfully!");
+            modal.style.display = 'none';
+        } catch (error) {
+            alert("System Error. Please try again.");
+        } finally {
+            saveBtn.disabled = false;
+            saveBtn.innerText = "Save to Google Sheets";
+        }
+    }
+
+    window.onclick = e => { if (e.target == modal) modal.style.display = 'none'; }
+</script>
+</body>
+</html>
